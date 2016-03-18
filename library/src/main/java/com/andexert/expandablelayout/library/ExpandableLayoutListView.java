@@ -110,6 +110,8 @@ public class ExpandableLayoutListView extends ListView
                 for (int index = 0; index < getChildCount(); ++index)
                 {
                     ExpandableLayoutItem currentExpandableLayout = (ExpandableLayoutItem) getChildAt(index).findViewWithTag(ExpandableLayoutItem.class.getName());
+                    if (currentExpandableLayout == null)
+                        return;// otherwise NPE if header added
                     if (currentExpandableLayout.isOpened() && index != (position - getFirstVisiblePosition()))
                     {
                         currentExpandableLayout.hideNow();

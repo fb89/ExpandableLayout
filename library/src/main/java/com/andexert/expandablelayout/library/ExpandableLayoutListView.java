@@ -68,18 +68,18 @@ public class ExpandableLayoutListView extends ListView
             if (index != (position - getFirstVisiblePosition()))
             {
                 ExpandableLayoutItem currentExpandableLayout = (ExpandableLayoutItem) getChildAt(index).findViewWithTag(ExpandableLayoutItem.class.getName());
-                currentExpandableLayout.hide();
+                if (currentExpandableLayout != null)
+                    currentExpandableLayout.hide();
             }
         }
 
         ExpandableLayoutItem expandableLayout = (ExpandableLayoutItem) getChildAt(position - getFirstVisiblePosition()).findViewWithTag(ExpandableLayoutItem.class.getName());
-
-        if (expandableLayout.isOpened())
-            expandableLayout.hide();
-        else
-            expandableLayout.show();
-
-
+        if (expandableLayout != null){
+         if (expandableLayout.isOpened())
+                    expandableLayout.hide();
+                else
+                    expandableLayout.show();   
+        }
         return super.performItemClick(view, position, id);
     }
 

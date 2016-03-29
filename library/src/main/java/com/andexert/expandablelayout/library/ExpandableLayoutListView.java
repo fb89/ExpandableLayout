@@ -76,7 +76,7 @@ public class ExpandableLayoutListView extends ListView {
                 isItemCollapsing = true;
             } else {
                 // TODO refactor
-                final int headerHeight = expandableLayout.getHeight();
+                final int headerHeight = view.getHeight();
                 int contentHeight = expandableLayout.getContentHeight();
                 final int expandedHeight = headerHeight + contentHeight;
                 expandableLayout.setOnViewExpandedCommand(new Runnable() {
@@ -85,7 +85,12 @@ public class ExpandableLayoutListView extends ListView {
                         Rect expandedRect = new Rect();
                         expandableLayout.getGlobalVisibleRect(expandedRect);
 
-                        int offset = expandedHeight - (expandedRect.bottom - expandedRect.top);
+                        Rect containerRect = new Rect();
+                        getGlobalVisibleRect(containerRect);
+
+                        int offset = (expandedRect.top + expandedHeight) - containerRect.bottom;
+
+                        //int offset = expandedHeight - (expandedRect.bottom - expandedRect.top);
                         if (offset > 0)
                             smoothScrollBy(offset, expandableLayout.getDuration());
                         expandableLayout.setOnViewExpandedCommand(null);

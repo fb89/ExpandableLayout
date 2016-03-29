@@ -1,18 +1,18 @@
 /***********************************************************************************
  * The MIT License (MIT)
- * <p/>
+ * <p>
  * Copyright (c) 2014 Robin Chutaux
- * <p/>
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p/>
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p/>
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -44,6 +44,24 @@ public class ExpandableLayoutItem extends RelativeLayout {
     private Boolean closeByUser = true;
 
     private OnItemExpandListener mOnItemExpandListener;
+    private Runnable mOnViewExpandedCommand;
+    private Animation.AnimationListener mAnimationListener = new Animation.AnimationListener() {
+        @Override
+        public void onAnimationStart(Animation animation) {
+
+        }
+
+        @Override
+        public void onAnimationEnd(Animation animation) {
+            if (mOnViewExpandedCommand != null)
+                mOnViewExpandedCommand.run();
+        }
+
+        @Override
+        public void onAnimationRepeat(Animation animation) {
+
+        }
+    };
 
     public interface OnItemExpandListener {
         void onExpand(ExpandableLayoutItem view);
@@ -116,10 +134,11 @@ public class ExpandableLayoutItem extends RelativeLayout {
         mOnItemExpandListener = onItemExpandListener;
     }
 
-    /**
-     * @return content height
-     */
-    private int expand(final View v) {
+    public void setOnViewExpandedCommand(Runnable onViewExpandedCommand) {
+        mOnViewExpandedCommand = onViewExpandedCommand;
+    }
+
+    private void expand(final View v) {
         isOpened = true;
         v.measure(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
         final int targetHeight = v.getMeasuredHeight();
@@ -139,11 +158,12 @@ public class ExpandableLayoutItem extends RelativeLayout {
                 return true;
             }
         };
+
+        animation.setAnimationListener(mAnimationListener);
         animation.setDuration(duration);
         v.startAnimation(animation);
         if (mOnItemExpandListener != null)
             mOnItemExpandListener.onExpand(this);
-        return targetHeight;
     }
 
     private void collapse(final View v) {
@@ -197,13 +217,9 @@ public class ExpandableLayoutItem extends RelativeLayout {
         return isOpened;
     }
 
-    /**
-     * @return content height
-     */
-    public int show() {
-        int contentHeight = 0;
+    public void show() {
         if (!isAnimationRunning) {
-            contentHeight = expand(contentLayout);
+            expand(contentLayout);
             isAnimationRunning = true;
             new Handler().postDelayed(new Runnable() {
                 @Override
@@ -212,7 +228,6 @@ public class ExpandableLayoutItem extends RelativeLayout {
                 }
             }, duration);
         }
-        return contentHeight;
     }
 
     public FrameLayout getHeaderLayout() {

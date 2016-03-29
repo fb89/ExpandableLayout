@@ -1,18 +1,18 @@
 /***********************************************************************************
  * The MIT License (MIT)
- * <p/>
+ * <p>
  * Copyright (c) 2014 Robin Chutaux
- * <p/>
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p/>
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p/>
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -54,7 +54,7 @@ public class ExpandableLayoutListView extends ListView {
     }
 
     @Override
-    public boolean performItemClick(View view, int position, long id) {
+    public boolean performItemClick(final View view, int position, long id) {
         this.position = position;
 
         for (int index = 0; index < getChildCount(); ++index) {
@@ -69,13 +69,29 @@ public class ExpandableLayoutListView extends ListView {
             }
         }
 
-        ExpandableLayoutItem expandableLayout = (ExpandableLayoutItem) getChildAt(position - getFirstVisiblePosition()).findViewWithTag(ExpandableLayoutItem.class.getName());
+        final ExpandableLayoutItem expandableLayout = (ExpandableLayoutItem) getChildAt(position - getFirstVisiblePosition()).findViewWithTag(ExpandableLayoutItem.class.getName());
         if (expandableLayout != null) {
             if (expandableLayout.isOpened()) {
                 expandableLayout.hide();
                 isItemCollapsing = true;
             } else {
-                int scrollSize = calculateBottomScroll(view, expandableLayout);
+                // TODO refactor
+                final int headerHeight = expandableLayout.getHeight();
+                int contentHeight = expandableLayout.getContentHeight();
+                final int expandedHeight = headerHeight + contentHeight;
+                expandableLayout.setOnViewExpandedCommand(new Runnable() {
+                    @Override
+                    public void run() {
+                        Rect expandedRect = new Rect();
+                        expandableLayout.getGlobalVisibleRect(expandedRect);
+
+                        int offset = expandedHeight - (expandedRect.bottom - expandedRect.top);
+                        if (offset > 0)
+                            smoothScrollBy(offset, expandableLayout.getDuration());
+                        expandableLayout.setOnViewExpandedCommand(null);
+                    }
+                });
+                int scrollSize = calculateBottomScroll(expandableLayout);
                 expandableLayout.show();
                 if (scrollSize > 0)
                     smoothScrollBy(scrollSize, expandableLayout.getDuration());
@@ -85,11 +101,11 @@ public class ExpandableLayoutListView extends ListView {
         return super.performItemClick(view, position, id);
     }
 
-    private int calculateBottomScroll(View header, ExpandableLayoutItem layoutItem) {
-        int headerHeight = header.getHeight();
+    private int calculateBottomScroll(ExpandableLayoutItem layoutItem) {
+        int headerHeight = layoutItem.getHeight();
         Rect headerRect = new Rect();
         Rect containerRect = new Rect();
-        header.getGlobalVisibleRect(headerRect);
+        layoutItem.getGlobalVisibleRect(headerRect);
         getGlobalVisibleRect(containerRect);
 
         int scrollSize;

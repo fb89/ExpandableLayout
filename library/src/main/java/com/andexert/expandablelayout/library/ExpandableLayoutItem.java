@@ -103,11 +103,23 @@ public class ExpandableLayoutItem extends RelativeLayout {
 
     }
 
+    public Integer getDuration() {
+        return duration;
+    }
+
+    public int getContentHeight() {
+        contentLayout.measure(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+        return contentLayout.getMeasuredHeight();
+    }
+
     public void setOnItemExpandListener(OnItemExpandListener onItemExpandListener) {
         mOnItemExpandListener = onItemExpandListener;
     }
 
-    private void expand(final View v) {
+    /**
+     * @return content height
+     */
+    private int expand(final View v) {
         isOpened = true;
         v.measure(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
         final int targetHeight = v.getMeasuredHeight();
@@ -131,6 +143,7 @@ public class ExpandableLayoutItem extends RelativeLayout {
         v.startAnimation(animation);
         if (mOnItemExpandListener != null)
             mOnItemExpandListener.onExpand(this);
+        return targetHeight;
     }
 
     private void collapse(final View v) {
@@ -184,9 +197,13 @@ public class ExpandableLayoutItem extends RelativeLayout {
         return isOpened;
     }
 
-    public void show() {
+    /**
+     * @return content height
+     */
+    public int show() {
+        int contentHeight = 0;
         if (!isAnimationRunning) {
-            expand(contentLayout);
+            contentHeight = expand(contentLayout);
             isAnimationRunning = true;
             new Handler().postDelayed(new Runnable() {
                 @Override
@@ -195,6 +212,7 @@ public class ExpandableLayoutItem extends RelativeLayout {
                 }
             }, duration);
         }
+        return contentHeight;
     }
 
     public FrameLayout getHeaderLayout() {

@@ -29,10 +29,9 @@ public class MainActivity extends Activity {
         StringAdapter adapter = new StringAdapter(this, array);
         final ExpandableLayoutListView expandableLayoutListView = (ExpandableLayoutListView) findViewById(R.id.listview);
 
-        expandableLayoutListView.setAdapter(adapter);
-
         expandableLayoutListView.addHeaderView(new Button(this), null, false);
         expandableLayoutListView.addFooterView(new Button(this), null, false);
+        expandableLayoutListView.setAdapter(adapter);
     }
 
 

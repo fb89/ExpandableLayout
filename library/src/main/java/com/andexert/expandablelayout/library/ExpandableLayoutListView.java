@@ -24,6 +24,7 @@
 package com.andexert.expandablelayout.library;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.AbsListView;
@@ -35,6 +36,7 @@ import android.widget.ListView;
  */
 public class ExpandableLayoutListView extends ListView {
     private Integer position = -1;
+    private boolean isItemCollapsing;// is some item is collapsing at that time
 
     public ExpandableLayoutListView(Context context) {
         super(context);
@@ -58,19 +60,48 @@ public class ExpandableLayoutListView extends ListView {
         for (int index = 0; index < getChildCount(); ++index) {
             if (index != (position - getFirstVisiblePosition())) {
                 ExpandableLayoutItem currentExpandableLayout = (ExpandableLayoutItem) getChildAt(index).findViewWithTag(ExpandableLayoutItem.class.getName());
-                if (currentExpandableLayout != null)
-                    currentExpandableLayout.hide();
+                if (currentExpandableLayout != null) {
+                    if (currentExpandableLayout.isOpened()) {
+                        currentExpandableLayout.hide();
+                        isItemCollapsing = true;
+                    }
+                }
             }
         }
 
         ExpandableLayoutItem expandableLayout = (ExpandableLayoutItem) getChildAt(position - getFirstVisiblePosition()).findViewWithTag(ExpandableLayoutItem.class.getName());
         if (expandableLayout != null) {
-            if (expandableLayout.isOpened())
+            if (expandableLayout.isOpened()) {
                 expandableLayout.hide();
-            else
+                isItemCollapsing = true;
+            } else {
+                int scrollSize = calculateBottomScroll(view, expandableLayout);
                 expandableLayout.show();
+                if (scrollSize > 0)
+                    smoothScrollBy(scrollSize, expandableLayout.getDuration());
+                isItemCollapsing = false;
+            }
         }
         return super.performItemClick(view, position, id);
+    }
+
+    private int calculateBottomScroll(View header, ExpandableLayoutItem layoutItem) {
+        int headerHeight = header.getHeight();
+        Rect headerRect = new Rect();
+        Rect containerRect = new Rect();
+        header.getGlobalVisibleRect(headerRect);
+        getGlobalVisibleRect(containerRect);
+
+        int scrollSize;
+        if (isItemCollapsing) {
+            scrollSize = headerHeight - (headerRect.bottom - headerRect.top);
+        } else {
+            int availSpace = containerRect.bottom - headerRect.top;
+            int contentHeight = layoutItem.getContentHeight();
+            int expandedHeight = headerHeight + contentHeight;
+            scrollSize = expandedHeight - availSpace;
+        }
+        return scrollSize;
     }
 
     @Override
